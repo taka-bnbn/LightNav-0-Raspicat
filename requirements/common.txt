@@ -1,0 +1,4 @@
+# CPU/ARM 共通の依存をここへ、動作確認済みの版で固定して追加する。
+# torch / torchvision / torchaudio / pyrealsense2 はここへ書かない。
+# それらは JetPack・Python・CUDA・RealSense SDK に依存する。
+PyYAML>=6.0,<7
