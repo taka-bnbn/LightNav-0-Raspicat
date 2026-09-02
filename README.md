@@ -101,6 +101,8 @@ ros2 topic echo /odom --once
 
 LightNav-0はOmniVLAではありません。公式コードと公開チェックポイントを使います。
 
+チェックポイントは現在**約9.7 GB**です（主な`model-00001-of-00001.safetensors`が約9.70 GB）。Gitへコミットせず、Jetsonの空き容量に余裕がなければ外付けSSDへ保存して持ち込みます。
+
 ```bash
 git clone https://github.com/lightorigins/LightNav-0.git
 cd LightNav-0
@@ -109,6 +111,15 @@ source .venv/bin/activate
 pip install -e ".[video]"
 hf download LightOriginsHQ/LightNav-0 --local-dir checkpoints/LightNav-0
 ```
+
+ダウンロードが完了したことは、次で確認できます。
+
+```bash
+du -sh checkpoints/LightNav-0
+test -f checkpoints/LightNav-0/model-00001-of-00001.safetensors && echo "重みOK"
+```
+
+外付けSSDへ置いた場合は、Jetsonでそのディレクトリをコピーするか、`lightnav-serve --model_path /media/<ユーザー名>/<SSD名>/LightNav-0`のように実際の保存先を指定します。
 
 Jetsonでは、この前にJetPack対応のARM64 PyTorchを導入する必要があります。`vllm`を使う場合も、JetPackとの対応確認後に導入します。JetPack版が未確認のうちは、公式のx86用Dockerイメージやx86用FlashAttentionを使わないでください。
 
