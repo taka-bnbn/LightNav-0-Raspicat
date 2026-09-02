@@ -1,20 +1,22 @@
-"""Light-Nav-0 と機体制御を接続する入口。
+"""Light-Nav-0 と Raspberry Pi Cat のROS 2接続入口。
 
-実際のモデル・制御コードをまだ追加していないため、危険な走行は行わずに終了する。
+モデルが未追加の間は、/cmd_velへゼロ速度を一度だけpublishして終了する。
 """
 
-from pathlib import Path
 import os
+
+from cmd_vel_bridge import CmdVelBridge
 
 
 def main() -> None:
-    print("LightNav-0-Raspicat launcher")
-    print(f"robot port: {os.getenv('ROBOT_PORT', '未設定')}")
-    print(f"project: {Path(__file__).resolve().parents[1]}")
-    raise SystemExit(
-        "実行コード未追加: 動作確認済みのLight-Nav-0推論とRaspberry Pi Cat制御を "
-        "src/ に追加してから、この入口へ接続してください。"
-    )
+    topic = os.getenv("CMD_VEL_TOPIC", "/cmd_vel")
+    bridge = CmdVelBridge(topic=topic)
+    try:
+        bridge.publish_command(0.0, 0.0)
+        print(f"停止指令を {topic} へ送信しました。")
+        print("Light-Nav-0推論コードは未接続のため、走行は開始しません。")
+    finally:
+        bridge.close()
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ set -u
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
+source config/robot.env
 
 echo "== Jetson / GPU =="
 uname -m
@@ -28,8 +29,17 @@ v4l2-ctl --list-devices 2>/dev/null || true
 command -v realsense-viewer >/dev/null && echo "realsense-viewer: 利用可能" || echo "realsense-viewer: 未導入"
 
 echo
-echo "== Raspberry Pi Cat 候補ポート =="
-ls -l /dev/ttyUSB* /dev/ttyACM* 2>/dev/null || echo "シリアルUSB機器は未検出です。"
+echo "== ROS 2 / Raspberry Pi Cat =="
+if [[ -f "/opt/ros/${ROS_DISTRO}/setup.bash" ]]; then
+  # shellcheck disable=SC1090
+  source "/opt/ros/${ROS_DISTRO}/setup.bash"
+  export ROS_DOMAIN_ID
+  echo "ROS_DISTRO=${ROS_DISTRO}, ROS_DOMAIN_ID=${ROS_DOMAIN_ID}"
+  ros2 topic list || true
+  echo "期待するトピック: ${CMD_VEL_TOPIC}, /odom"
+else
+  echo "ROS 2 ${ROS_DISTRO} がJetsonにありません。"
+fi
 
 echo
 echo "安全確認: このスクリプトはカメラ・機体へ制御コマンドを一切送りません。"

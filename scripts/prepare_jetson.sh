@@ -27,6 +27,15 @@ if [[ ! -f config/jetson.env ]]; then
   cp config/jetson.env.example config/jetson.env
 fi
 
+source config/robot.env
+if [[ ! -f "/opt/ros/${ROS_DISTRO}/setup.bash" ]]; then
+  cat <<MSG
+WARNING: ROS 2 ${ROS_DISTRO} がJetsonに見つかりません。
+Raspberry Pi Catとの通信には、機体側と同じROS 2ディストリビューションが必要です。
+JetPack 6 / Ubuntu 22.04ならROS 2 Humbleを導入してから、このスクリプトを再実行してください。
+MSG
+fi
+
 # RealSense の公式APTリポジトリ。失敗しても、GPU環境の診断を先へ進められるようにする。
 sudo mkdir -p /etc/apt/keyrings
 curl -fsSL https://librealsense.realsenseai.com/Debian/librealsenseai.asc \
