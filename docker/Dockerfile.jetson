@@ -17,13 +17,15 @@ WORKDIR /opt/LightNav-0
 # torch>=2.9制約をそのまま解決すると、Jetson非対応wheelへ置き換わるためno-depsにする。
 # NVIDIA 25.06はPython 3.12、LightNav-0は<3.12を宣言している。コードは3.12でも
 # 動作確認するため、ここだけ互換モードで制約を越える（PyTorchはコンテナ同梱版を使う）。
+# 同梱PyTorchはNumPy 1.x ABIでビルド済みなので、NumPy 2.xを入れると
+# torch.from_numpy()が使えず、起動時ウォームアップが失敗する。
 RUN python3 -m pip install --no-cache-dir --upgrade pip \
     && python3 -m pip install --no-cache-dir --ignore-requires-python --no-deps -e . \
     && python3 -m pip install --no-cache-dir \
         'transformers==5.8.0' \
         'tokenizers>=0.22,<0.23' \
         'safetensors>=0.7' \
-        'numpy>=2.0' \
+        'numpy==1.26.4' \
         'pillow>=11.0' \
         'pyyaml>=6.0' \
         'websockets>=12.0' \
