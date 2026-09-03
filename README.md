@@ -22,9 +22,25 @@ cd LightNav-0-Raspicat
 
 モータを接続する前に、RealSense が `realsense-viewer` で RGB/Depth を表示できること、Jetson と機体側 Raspberry Pi で同じ `ROS_DOMAIN_ID` を使っていることを確認してください。
 
-## 重要な状態
+## 現在の実装
 
-現時点では、このリポジトリには実際の Light-Nav-0 推論コードとモデル重みはまだ入っていません。そのため `src/run_robot.py` はゼロ速度だけを送って安全に停止します。既存の動作済みコードを `src/` に追加したら、依存を `requirements/common.txt` に固定し、推論結果を `src/cmd_vel_bridge.py` の `publish_command()` へ渡してください。
+LightNav-0公式の`vln_client`と`vln_mpc`を使用し、`raspicat_lightnav_bridge`が
+`mpc/cmd_vel`（`TwistStamped`）をRaspberry Pi Cat用の`/cmd_vel`
+（`Twist`）へ変換します。ブリッジには独立したwatchdogと速度制限があります。
+
+```text
+/camera/color/image_raw (bgr8) -> image_adapter (rgb8)
+  -> /lightnav/camera/color/image_raw -> vln_client -> vln/response
+  -> vln_mpc + /odom -> mpc/cmd_vel
+  -> raspicat_lightnav_bridge -> /cmd_vel
+```
+
+JetPack 6.2.2ではCasADi 3.8.0が要求する`GLIBCXX_3.4.32`を利用できないため、
+ARM64互換の`casadi==3.7.2`へ固定しています。ROSパッケージの準備は次で行います。
+
+```bash
+./scripts/prepare_lightnav_ros.sh
+```
 
 モデル重みは Git に直接入れず、ライセンスを確認してダウンロードスクリプトまたはリリース配布にしてください。明日ネットワークに頼れない場合は、事前に重みを `models/` へ置いてください。
 
@@ -58,7 +74,23 @@ Jetson側では次を実行し、`/cmd_vel`と`/odom`が見えることを確認
 ./scripts/check_hardware.sh
 ```
 
-`./scripts/run_robot.sh`は、実装が未追加の間は**停止命令（ゼロ速度）だけ**を送ります。推論結果による走行を許可するには、実装を接続した上で`ALLOW_MOTION=1`を明示します。
+Jetson側のLightNavスタックは、最初は速度出力を無効にして起動します。
+
+```bash
+source /opt/ros/humble/setup.bash
+source ~/LightNav-0-Raspicat/ros_ws/install/setup.bash
+ros2 launch raspicat_lightnav_bridge lightnav_raspicat.launch.py enable_motion:=false
+```
+
+カメラ、`/odom`、`vln/response`、`mpc/status`を確認後、速度出力を有効にします。
+
+```bash
+ros2 launch raspicat_lightnav_bridge lightnav_raspicat.launch.py enable_motion:=true
+```
+
+既定値では前進`0.08 m/s`、旋回`0.25 rad/s`までに制限され、MPC指令が
+0.5秒更新されない場合、VLN/MPCが停止した場合、または`control/enable`へ
+`false`を送った場合はゼロ速度になります。後退は既定で禁止されています。
 
 ## 明日の実施チェックリスト
 
@@ -125,21 +157,13 @@ Jetsonでは、この前にJetPack対応のARM64 PyTorchを導入する必要が
 
 ### 5. JetPack 6.2.2でLightNav-0サーバーを起動する
 
-研究室のJetsonはJetPack 6.2.2（R36.5 / CUDA 12.6）であることを確認済みです。このリポジトリには、その環境とOrin GPU向けのDocker定義を含めています。初回だけビルドします。
+Jetson AGX OrinではDocker版のCUDA kernel imageエラーを確認済みのため、
+動作確認済みのネイティブvenvとHugging Faceバックエンドを使います。
 
 ```bash
-./scripts/lightnav_container.sh build
+source ~/lightnav-venv/bin/activate
+lightnav-serve --task vln --model_path ~/models/LightNav-0 --backend hf --port 8051
 ```
-
-完了後、まずは言語ナビゲーション用のサーバーを起動します。
-
-```bash
-./scripts/lightnav_container.sh serve vln 8051
-```
-
-`LightNav-0 server listening`のような待受メッセージが出れば成功です。この段階ではカメラやモータへ一切の命令を送りません。別のターミナルからROS 2クライアントをつなぐのは、その後です。
-
-この初回イメージは、JetPack対応済みのNVIDIA PyTorch 2.8を維持し、`--backend hf`で動かします。NVIDIAコンテナはPython 3.12、LightNav-0はPython 3.11のみを宣言しているため、DockerfileではPython 3.12互換モードを使います。また、同梱PyTorchとのABI互換のためNumPy 1.26を固定しています。LightNav-0公式のvLLM/FlashAttentionはJetson上で未検証のため、最初から導入しません。
 
 ### 6. 接続時の注意点
 

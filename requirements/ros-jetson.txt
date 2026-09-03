@@ -1,0 +1,2 @@
+# CasADi 3.8.0 requires GLIBCXX_3.4.32, which JetPack 6.2.2 does not ship.
+casadi==3.7.2

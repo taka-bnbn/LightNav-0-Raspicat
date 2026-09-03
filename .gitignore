@@ -5,3 +5,8 @@ models/
 config/jetson.env
 config/robot.env
 .env
+ros_ws/build/
+ros_ws/install/
+ros_ws/log/
+ros_ws/src/vln_client
+ros_ws/src/vln_mpc
