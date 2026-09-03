@@ -123,7 +123,25 @@ test -f checkpoints/LightNav-0/model-00001-of-00001.safetensors && echo "重みO
 
 Jetsonでは、この前にJetPack対応のARM64 PyTorchを導入する必要があります。`vllm`を使う場合も、JetPackとの対応確認後に導入します。JetPack版が未確認のうちは、公式のx86用Dockerイメージやx86用FlashAttentionを使わないでください。
 
-### 5. 接続時の注意点
+### 5. JetPack 6.2.2でLightNav-0サーバーを起動する
+
+研究室のJetsonはJetPack 6.2.2（R36.5 / CUDA 12.6）であることを確認済みです。このリポジトリには、その環境とOrin GPU向けのDocker定義を含めています。初回だけビルドします。
+
+```bash
+./scripts/lightnav_container.sh build
+```
+
+完了後、まずは言語ナビゲーション用のサーバーを起動します。
+
+```bash
+./scripts/lightnav_container.sh serve vln 8051
+```
+
+`LightNav-0 server listening`のような待受メッセージが出れば成功です。この段階ではカメラやモータへ一切の命令を送りません。別のターミナルからROS 2クライアントをつなぐのは、その後です。
+
+この初回イメージは、JetPack対応済みのNVIDIA PyTorch 2.8を維持し、`--backend hf`で動かします。LightNav-0公式のvLLM/FlashAttentionはJetson上で未検証のため、最初から導入しません。
+
+### 6. 接続時の注意点
 
 既存の[`camera_server`](https://github.com/wadajun8/camera_server)は`/camera/color/image_raw`を`bgr8`で配信します。LightNav-0公式のROS 2クライアントは`rgb8`を要求するため、BGR→RGB変換ノードを追加して接続します。トピック名だけの変更では不十分です。
 

@@ -1,0 +1,31 @@
+# JetPack 6.2.x / Jetson Orin 向け LightNav-0 推論サーバー。
+# NVIDIA 25.06 は JetPack 6.2 と Orin iGPUに対応した PyTorch 2.8 / Python 3.12 環境。
+FROM nvcr.io/nvidia/pytorch:25.06-py3
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /opt
+RUN git clone --depth 1 https://github.com/lightorigins/LightNav-0.git
+
+WORKDIR /opt/LightNav-0
+# PyTorchはJetPack対応済みのベースイメージのものを維持する。公式pyprojectの
+# torch>=2.9制約をそのまま解決すると、Jetson非対応wheelへ置き換わるためno-depsにする。
+RUN python3 -m pip install --no-cache-dir --upgrade pip \
+    && python3 -m pip install --no-cache-dir --no-deps -e . \
+    && python3 -m pip install --no-cache-dir \
+        'transformers==5.8.0' \
+        'tokenizers>=0.22,<0.23' \
+        'safetensors>=0.7' \
+        'numpy>=2.0' \
+        'pillow>=11.0' \
+        'pyyaml>=6.0' \
+        'websockets>=12.0' \
+        'opencv-python-headless>=4.10'
+
+# vLLMとFlashAttentionはJetson向けに未検証のため、初回はHF/SDPAバックエンドを使う。
+ENTRYPOINT ["lightnav-serve"]
