@@ -145,6 +145,8 @@ Jetsonでは、この前にJetPack対応のARM64 PyTorchを導入する必要が
 
 既存の[`camera_server`](https://github.com/wadajun8/camera_server)は`/camera/color/image_raw`を`bgr8`で配信します。LightNav-0公式のROS 2クライアントは`rgb8`を要求するため、BGR→RGB変換ノードを追加して接続します。トピック名だけの変更では不十分です。
 
+研究室のJetsonでは、RealSenseのカラー映像が`/dev/video4`（YUYV）で見つかりました。`ros_ws/src/lightnav_camera`のノードはこれをRGBへ変換し、LightNav-0互換の`/camera/color/image_raw`（`rgb8`）として配信します。
+
 最初の確認は、必ずこの順番で行います。
 
 1. `realsense-viewer`でRGB映像を確認する。
