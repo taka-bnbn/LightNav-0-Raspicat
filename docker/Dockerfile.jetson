@@ -15,8 +15,10 @@ RUN git clone --depth 1 https://github.com/lightorigins/LightNav-0.git
 WORKDIR /opt/LightNav-0
 # PyTorchはJetPack対応済みのベースイメージのものを維持する。公式pyprojectの
 # torch>=2.9制約をそのまま解決すると、Jetson非対応wheelへ置き換わるためno-depsにする。
+# NVIDIA 25.06はPython 3.12、LightNav-0は<3.12を宣言している。コードは3.12でも
+# 動作確認するため、ここだけ互換モードで制約を越える（PyTorchはコンテナ同梱版を使う）。
 RUN python3 -m pip install --no-cache-dir --upgrade pip \
-    && python3 -m pip install --no-cache-dir --no-deps -e . \
+    && python3 -m pip install --no-cache-dir --ignore-requires-python --no-deps -e . \
     && python3 -m pip install --no-cache-dir \
         'transformers==5.8.0' \
         'tokenizers>=0.22,<0.23' \

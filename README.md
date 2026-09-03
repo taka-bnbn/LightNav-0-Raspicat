@@ -139,7 +139,7 @@ Jetsonでは、この前にJetPack対応のARM64 PyTorchを導入する必要が
 
 `LightNav-0 server listening`のような待受メッセージが出れば成功です。この段階ではカメラやモータへ一切の命令を送りません。別のターミナルからROS 2クライアントをつなぐのは、その後です。
 
-この初回イメージは、JetPack対応済みのNVIDIA PyTorch 2.8を維持し、`--backend hf`で動かします。LightNav-0公式のvLLM/FlashAttentionはJetson上で未検証のため、最初から導入しません。
+この初回イメージは、JetPack対応済みのNVIDIA PyTorch 2.8を維持し、`--backend hf`で動かします。NVIDIAコンテナはPython 3.12、LightNav-0はPython 3.11のみを宣言しているため、DockerfileではPython 3.12互換モードを使います。LightNav-0公式のvLLM/FlashAttentionはJetson上で未検証のため、最初から導入しません。
 
 ### 6. 接続時の注意点
 
