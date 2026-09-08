@@ -36,6 +36,8 @@ def generate_launch_description() -> LaunchDescription:
                 parameters=[
                     {
                         "enabled": enable_motion,
+                        # TF verified: only +0.076 m in Z to base_link.
+                        "odom_base_frame": "base_footprint",
                         "track_v_max": 0.08,
                         "objnav_v_max": 0.08,
                         "w_max": 0.25,

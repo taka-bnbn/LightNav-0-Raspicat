@@ -187,3 +187,10 @@ lightnav-serve --task vln --model_path ~/models/LightNav-0 --backend hf --port 8
 - [Raspberry Pi Cat手動操作資料](https://cit-autonomous-robot-lab.github.io/raspicat_documentation/document/tutorial/6_teleop/): 本体側ドライバの起動方法。
 
 `raspicat_omnivla`はOmniVLA用のため、LightNav-0を動かす今回の構成では使いません。
+
+## Raspicatのオドメトリ座標系
+
+MPCの`odom_base_frame`は`base_footprint`、推論結果の`base_frame`は
+`base_link`に設定します。この構成は実機TFで両者の平面位置・姿勢が一致し、
+高さのみ0.076 m異なることを確認したものです。`odom_base_frame`はTF変換を
+行わないため、水平オフセットや回転がある機体には使用しないでください。
